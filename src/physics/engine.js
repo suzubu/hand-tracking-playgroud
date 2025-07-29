@@ -1,5 +1,9 @@
 import { Body } from "matter-js";
 
+function dist(x1, y1, x2, y2) {
+  return Math.hypot(x2 - x1, y2 - y1);
+}
+
 let lastLogTime = 0;
 
 /**
@@ -15,10 +19,10 @@ export function applyHandForcesToCircles(
   circles,
   lastHandPositions,
   windowWidth,
-  windowHeight
+  windowHeight,
+  interactionMode
 ) {
   const influenceRadius = 120;
-  const maxForce = 0.001; // Softer interaction
   const damping = 0.5;
 
   for (const circle of circles) {
@@ -27,7 +31,6 @@ export function applyHandForcesToCircles(
     const vy = circle.velocity.y;
     const pos = circle.position;
 
-    // If near edge and moving out of bounds, stop or dampen
     if (pos.x < buffer && vx < 0) Body.setVelocity(circle, { x: 0, y: vy });
     if (pos.x > windowWidth - buffer && vx > 0)
       Body.setVelocity(circle, { x: 0, y: vy });
@@ -35,7 +38,6 @@ export function applyHandForcesToCircles(
     if (pos.y > windowHeight - buffer && vy > 0)
       Body.setVelocity(circle, { x: vx, y: 0 });
 
-    // Clamp position inside canvas to prevent loss
     const clampedX = Math.min(Math.max(pos.x, buffer), windowWidth - buffer);
     const clampedY = Math.min(Math.max(pos.y, buffer), windowHeight - buffer);
     Body.setPosition(circle, { x: clampedX, y: clampedY });
@@ -58,8 +60,29 @@ export function applyHandForcesToCircles(
 
         if (distance < influenceRadius) {
           const strength = 1 - distance / influenceRadius;
-          const fx = dx * strength * maxForce;
-          const fy = dy * strength * maxForce;
+          let fx = 0;
+          let fy = 0;
+
+          if (interactionMode === "gather") {
+            const maxForce = 0.001;
+            fx = dx * strength * maxForce;
+            fy = dy * strength * maxForce;
+          } else if (interactionMode === "repulse") {
+            const repelForce = 0.9;
+            const awayX = circlePos.x - x;
+            const awayY = circlePos.y - y;
+            const norm = Math.sqrt(awayX * awayX + awayY * awayY) || 1;
+            fx = (awayX / norm) * repelForce * strength;
+            fy = (awayY / norm) * repelForce * strength;
+          } else if (interactionMode === "attract") {
+            const attractForce = 0.05;
+            const towardX = x - circlePos.x;
+            const towardY = y - circlePos.y;
+            const norm = Math.sqrt(towardX * towardX + towardY * towardY) || 1;
+            fx = (towardX / norm) * attractForce * strength;
+            fy = (towardY / norm) * attractForce * strength;
+          }
+
           Body.applyForce(circle, circle.position, { x: fx, y: fy });
         }
       }
@@ -67,15 +90,20 @@ export function applyHandForcesToCircles(
       lastHandPositions.set(key, { x, y });
     }
   }
-  // Log how many circles are currently visible on screen every 10 seconds
-  const visibleCircles = circles.filter(c => {
+
+  const visibleCircles = circles.filter((c) => {
     const { x, y } = c.position;
     return x >= 0 && x <= windowWidth && y >= 0 && y <= windowHeight;
   });
 
   const now = Date.now();
-  if (now - lastLogTime > 10000) { // 10 seconds
-    console.log("Visible circles:", visibleCircles.length, "of", circles.length);
+  if (now - lastLogTime > 10000) {
+    console.log(
+      "Visible circles:",
+      visibleCircles.length,
+      "of",
+      circles.length
+    );
     lastLogTime = now;
   }
 }

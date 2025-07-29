@@ -18,7 +18,7 @@ export function drawHand(
   predictions,
   canvasWidth,
   canvasHeight,
-  style = "dots"
+  style = "cyberpunkNeon"
 ) {
   colorMode(HSB, 360, 100, 100, 100);
   noFill();
@@ -31,46 +31,52 @@ export function drawHand(
       y: pt.y * canvasHeight,
     }));
 
-    if (style === "rainbowGlow") {
-      colorMode(RGB);
-      for (const pt of points) {
-        fill(0, 100, 100);
-        noStroke();
-        ellipse(pt.x, pt.y, 5);
+    const baseHue = (millis() * 0.05) % 360;
+
+    const fingerIndices = [
+      [0, 1, 2, 3, 4], // Thumb
+      [0, 5, 6, 7, 8], // Index
+      [0, 9, 10, 11, 12], // Middle
+      [0, 13, 14, 15, 16], // Ring
+      [0, 17, 18, 19, 20], // Pinky
+    ];
+
+    drawingContext.shadowBlur = 35;
+
+    fingerIndices.forEach((finger, i) => {
+      const hue = (baseHue + i * 50) % 360;
+      const innerHue = (hue + 180) % 360;
+
+      const [r, g, b] = hslToRgb(hue, 100, 70);
+      const [ri, gi, bi] = hslToRgb(innerHue, 100, 60);
+
+      const borderColor = color(r, g, b, 100);
+      const innerColor = color(ri, gi, bi, 40);
+
+      drawingContext.shadowColor = `rgba(${r}, ${g}, ${b}, 0.6)`;
+
+      // Outer glowing stroke
+      stroke(borderColor);
+      strokeWeight(12);
+      noFill();
+      beginShape();
+      curveTightness(0.5);
+      for (const index of finger) {
+        const pt = points[index];
+        curveVertex(pt.x, pt.y);
       }
+      endShape();
 
-      const baseHue = (millis() * 0.02) % 360;
-
-      const fingerIndices = [
-        [1, 2, 3, 4], // Thumb
-        [5, 6, 7, 8], // Index
-        [9, 10, 11, 12], // Middle
-        [13, 14, 15, 16], // Ring
-        [17, 18, 19, 20], // Pinky
-      ];
-
-      fingerIndices.forEach((finger, i) => {
-        const hue = (baseHue + i * 60) % 360;
-        const [r, g, b] = hslToRgb(hue, 100, 70);
-        const c = color(r, g, b);
-
-        stroke(c);
-        strokeWeight(8);
-        noFill();
-        beginShape();
-        for (const index of finger) {
-          const pt = points[index];
-          vertex(pt.x, pt.y);
-        }
-        endShape();
-
-        for (const index of finger) {
-          const pt = points[index];
-          fill(c);
-          noStroke();
-          ellipse(pt.x, pt.y, 12);
-        }
-      });
-    }
+      // Inner colored fill
+      noStroke();
+      fill(innerColor);
+      beginShape();
+      curveTightness(0.8);
+      for (const index of finger) {
+        const pt = points[index];
+        curveVertex(pt.x, pt.y);
+      }
+      endShape(CLOSE);
+    });
   }
 }
