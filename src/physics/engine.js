@@ -4,6 +4,24 @@ function dist(x1, y1, x2, y2) {
   return Math.hypot(x2 - x1, y2 - y1);
 }
 
+/**
+ * Helper function to extract RGB values from a color representation.
+ * @param {any} col - Color input which can be a p5.Color object or a string.
+ * @returns {Array} - Array containing RGB values [r, g, b].
+ */
+function extractRGB(col) {
+  if (col && col.levels) return col.levels;
+  if (typeof col === "string") {
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.fillStyle = col;
+    const computed = ctx.fillStyle;
+    ctx.fillStyle = computed;
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    return [r, g, b];
+  }
+  return [255, 255, 255];
+}
+
 let lastLogTime = 0;
 
 /**
