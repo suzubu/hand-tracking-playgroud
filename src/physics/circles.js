@@ -8,7 +8,7 @@ export function createCircles(world, count, width, height) {
     const circle = Bodies.circle(
       Math.random() * width,
       Math.random() * height,
-      Math.random() * 40 + 20, // 20–60
+      Math.random() * 40 + 20, // 20–60 radius
       {
         restitution: 0.05,
         friction: 0.2,
@@ -16,6 +16,7 @@ export function createCircles(world, count, width, height) {
       }
     );
     circle.color = getRandomColor();
+    circle.trail = []; // Store trail positions
     World.add(world, circle);
     circles.push(circle);
   }

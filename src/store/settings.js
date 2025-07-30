@@ -1,4 +1,5 @@
 export const settings = {
   backgroundMode: "video", // or 'dark', 'light'
-  interactionMode: "attract", // or 'repulse', 'neutral'
+  interactionMode: "gather", // or 'repulse', 'attract'
+  circleStyle: "default", // 'default', 'trails', 'neon glow'
 };

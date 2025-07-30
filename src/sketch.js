@@ -95,16 +95,71 @@ window.draw = function () {
       lastHandPositions,
       width,
       height,
-      settings.interactionMode // ✅ Pass selected interaction
+      settings.interactionMode, // passed from settings
+      settings.circleStyle // passed from settings
     );
   }
 
-  noStroke();
+  // noStroke();
+
   for (let circle of circles) {
-    fill(circle.color);
-    stroke(0, 0, 0, 30);
-    strokeWeight(1);
-    ellipse(circle.position.x, circle.position.y, circle.circleRadius * 2);
+    const { x, y } = circle.position;
+    const radius = circle.circleRadius;
+
+    if (settings.circleStyle === "default") {
+      fill(circle.color);
+      stroke(0, 0, 0, 30);
+      strokeWeight(1);
+      ellipse(x, y, radius * 2);
+    } else if (settings.circleStyle === "trails") {
+      // Draw the fading trail as full-sized fading circles (no glow)
+      if (circle.trail && circle.trail.length > 1) {
+        noStroke();
+        for (let i = 0; i < circle.trail.length; i++) {
+          const pos = circle.trail[i];
+          const alpha = map(i, 0, circle.trail.length, 0, 255);
+          fill(
+            red(circle.color),
+            green(circle.color),
+            blue(circle.color),
+            alpha
+          );
+          ellipse(pos.x, pos.y, radius * 2);
+          // stroke(100, 100, 100, alpha * 0.5); // Lighter stroke for trail circle
+          // strokeWeight(0.5);
+          // noFill();
+          // ellipse(pos.x, pos.y, radius); // Slightly larger ring
+          fill(
+            red(circle.color),
+            green(circle.color),
+            blue(circle.color),
+            alpha
+          ); // Restore fill for next iteration
+          noStroke();
+        }
+      }
+
+      // Draw the current circle without glow
+      fill(circle.color);
+      stroke(100, 100, 100, 80); // Lighter gray, semi-transparent
+      strokeWeight(0.7); // Thinner border
+      // noStroke();
+      ellipse(x, y, radius * 2);
+    } else if (settings.circleStyle === "neon glow") {
+      drawingContext.shadowBlur = 20;
+      drawingContext.shadowColor = color(circle.color);
+      fill(circle.color);
+
+      stroke(255, 255, 255, 80);
+      strokeWeight(2);
+      ellipse(
+        x + sin(frameCount * 0.1 + x * 0.01) * 2,
+        y,
+        radius * 2.2,
+        radius * 1.8
+      );
+      drawingContext.shadowBlur = 0; // Reset
+    }
   }
 };
 

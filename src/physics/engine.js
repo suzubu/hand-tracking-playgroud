@@ -20,9 +20,10 @@ export function applyHandForcesToCircles(
   lastHandPositions,
   windowWidth,
   windowHeight,
-  interactionMode
+  interactionMode,
+  circleStyle
 ) {
-  const influenceRadius = 120;
+  const influenceRadius = 200;
   const damping = 0.5;
 
   for (const circle of circles) {
@@ -68,12 +69,15 @@ export function applyHandForcesToCircles(
             fx = dx * strength * maxForce;
             fy = dy * strength * maxForce;
           } else if (interactionMode === "repulse") {
-            const repelForce = 0.9;
+            const repelForce = 2.5;
             const awayX = circlePos.x - x;
             const awayY = circlePos.y - y;
             const norm = Math.sqrt(awayX * awayX + awayY * awayY) || 1;
-            fx = (awayX / norm) * repelForce * strength;
-            fy = (awayY / norm) * repelForce * strength;
+
+            // Inverse square style repulsion for stronger near-field force
+            const scaledStrength = strength * strength;
+            fx = (awayX / norm) * repelForce * scaledStrength;
+            fy = (awayY / norm) * repelForce * scaledStrength;
           } else if (interactionMode === "attract") {
             const attractForce = 0.05;
             const towardX = x - circlePos.x;
@@ -84,6 +88,14 @@ export function applyHandForcesToCircles(
           }
 
           Body.applyForce(circle, circle.position, { x: fx, y: fy });
+        }
+
+        if (circleStyle === "trails") {
+          if (!circle.trail) circle.trail = [];
+          circle.trail.push({ x: circle.position.x, y: circle.position.y });
+
+          // Limit the trail length
+          if (circle.trail.length > 140) circle.trail.shift();
         }
       }
 
