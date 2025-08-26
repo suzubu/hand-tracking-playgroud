@@ -1,4 +1,4 @@
-# ✋ Hands Project
+# ✋ Hand Tracking Playground
 
 > An interactive p5.js + MediaPipe Hands + Matter.js playground where colorful circles react to hand movement.
 
