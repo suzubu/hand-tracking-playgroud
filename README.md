@@ -16,10 +16,10 @@ These instructions will get your project running locally.
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/suzubu/hands.git
+git clone https://github.com/suzubu/hand-tracking-playground.git
 
 # 2. Navigate into the project folder
-cd hands
+cd hand-tracking-playground
 
 # 3. Install dependencies
 npm install
